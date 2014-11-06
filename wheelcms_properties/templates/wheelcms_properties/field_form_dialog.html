@@ -1,0 +1,59 @@
+<div class="modal-header">
+    <h3>Add / edit field</h3>
+</div>
+<div class="modal-body">
+  <form name="field_form" class="form-horizontal" role="form">
+    <div class="form-group">
+      <label for="fieldid" class="col-sm-4 control-label">Field id</label>
+      <div class="col-sm-8">
+        <input class="form-control" id="fieldid" placeholder="id" value="" ng-model="fielddata.id" required>
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="title" class="col-sm-4 control-label">Title (label)</label>
+      <div class="col-sm-8">
+        <input class="form-control" id="title" placeholder="title" value="" ng-model="fielddata.title" required>
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="fieldtype" class="col-sm-4 control-label">Data Type</label>
+      <div class="col-sm-8">
+        <select id="fieldtype" class="form-control" ng-model="fielddata._type" required
+                ng-options="t.title for t in data_types">
+          <option value="">Select a field type</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="inputtype" class="col-sm-4 control-label">Input Type</label>
+      <div class="col-sm-8">
+        <select id="inputtype" class="form-control" ng-model="fielddata._input" required
+                ng-options="t.title for t in input_types">
+          <option value="">Select an input type</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="default_value" class="col-sm-4 control-label">Default value</label>
+      <div class="col-sm-8">
+        <textarea class="form-control" id="default_value" placeholder="Default value" ng-model="fielddata.default_value">
+        </textarea>
+      </div>
+    </div>
+    <h4>Restrict input to</h4>
+    <div class="form-group">
+      <label for="vocabulary" class="col-sm-4 control-label"></label>
+      <div class="col-sm-8">
+        <textarea class="form-control" id="vocabulary" placeholder="" ng-model="fielddata._choices">
+        </textarea>
+        <p class="help-block">Enter allowed values, one per line</p>
+      </div>
+    </div>
+  </form>
+</div>
+<div class="modal-footer">
+    <button class="btn btn-primary" ng-disabled="field_form.$invalid" ng-click="ok()">OK</button>
+    <button class="btn btn-warning" ng-click="cancel()">Cancel</button>
+    <button class="btn btn-danger" ng-hide="!canDelete()" ng-click="remove()">Delete</button>
+</div>
+

@@ -1,0 +1,141 @@
+{% extends "wheelcms_axle/configuration.html" %}
+{% load granules %}
+{% load staticfiles %}
+{% load i18n %}
+{% load url from future %}
+
+{% block angular_init %}
+  {{block.super}}
+  <script type="text/javascript">
+    extradeps.push("wheelcms_properties");
+   </script>
+{% endblock %}
+
+{% block granules %}
+  {{block.super}}
+
+  {% granule "base_stylesheets" %}
+    <link href="{% static "css/fields.css" %}" rel="stylesheet">
+  {% endgranule %}
+
+  {% granule "javascript" %}
+    {# same as hwconfig_fields #}
+    <script src="{% static "js/tv4.min.js" %}"></script>
+    <script src="{% static "js/ObjectPath.js" %}"></script>
+    <script src="{% static "js/schema-form.js" %}"></script>
+    <script src="{% static "js/bootstrap-decorator.min.js" %}"></script>
+    <script src="{% static "js/sortable.js" %}"></script>
+    {# .. #}
+    <script src="{% static "js/wheelcms_properties.js" %}"></script>
+  {% endgranule %}
+{% endblock %}
+
+{% block config_form  %}
+
+<script type="text/ng-template" id="AddEditField.html">
+    {% include "wheelcms_properties/field_form_dialog.html" %}
+</script>
+
+<div ng-controller="WheelPropertiesCtrl">
+  <div ng-if="state == 'list'">
+    <div class="row">
+      <div class="col-md-12">
+        <h3>
+          Property forms
+          <button class="btn btn-success btn-xs" ng-click="newEditForm(null)">
+            <i class="glyphicon glyphicon-plus"></i> Add form
+          </button>
+          <button class="btn btn-success btn-xs pull-right" ng-click="save()"
+                  ng-hide="!changed">
+            <i class="glyphicon glyphicon-save"></i> Save changes
+          </button>
+        </h3>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-12">
+        <table class="table table-bordered table-condensed table-hover">
+          <thead>
+            <th>Form name</th><th>Spokes</th><th></th>
+          </thead>
+          <tbody>
+            {% for form in forms %}
+            <tr>
+              <td>{{form.name}}</td>
+              <td>A, B, C {{form.id}}</td>
+              <td><button class="btn btn-primary btn-xs pull-right"
+                          ng-click="newEditForm({{form.id}})"
+                         ><i class="glyphicon glyphicon-edit"></i> Edit</button>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div ng-if='state == "edit"'>
+    <div class="row">
+      <div class="col-md-12">
+        <h3>
+          Edit or create form
+          <button class="btn btn-success btn-xs" ng-click="newEditField(null)">
+            <i class="glyphicon glyphicon-plus"></i> Add field
+          </button>
+          <button class="btn btn-success btn-xs pull-right" ng-click="saveForm()"
+                  ng-hide="!changed">
+            <i class="glyphicon glyphicon-save"></i> Save changes
+          </button>
+        </h3>
+      </div>
+    </div>
+    {# copied from hwconfig_fields #}
+    <div class="row">
+      <div class="col-md-12">
+        <h4>Form properties</h4>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-12">
+        <div class="form-group ">
+          <label class="control-label col-md-2" for="id_title">Name</label>
+          <div class="col-md-10">
+            <input class="form-control" id="id_title" maxlength="256" name="title" type="text" ng-model="formname">
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-12">
+        <h4>Form definition</h4>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-12">
+        <table class="table">
+          <tbody ui-sortable="sortableOptions" ng-model="schemaforms">
+          <tr ng-repeat="sf in schemaforms">
+            <td class="text-center">
+              <span class="glyphicon glyphicon-move glyphicon-large"></span>
+            </td>
+            <td>
+              <form sf-schema="sf.schema" sf-form="sf.form" sf-model="sf.model">
+              </form>
+            </td>
+            <td class="text-center">
+              <button class="btn btn-primary btn-xs pull-right"
+                      ng-click="newEditField(sf)">
+                <span class="glyphicon glyphicon-edit"></span> Edit
+              </button>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {# endcopy #}
+  </div>
+</div>
+
+{% endblock %}
+
