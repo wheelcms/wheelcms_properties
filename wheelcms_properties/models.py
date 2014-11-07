@@ -34,33 +34,42 @@ class PropertiesConfigurationHandler(BaseConfigurationHandler):
     form = None
 
     def view(self, handler, instance):
-        ## show listing or specific spoke
-        ctx = {}
-        ## sort by .name?
-        ctx['forms'] = [dict(name=f.name, id=f.id) for f in PropertyForm.objects.filter(conf=instance)]
-        # import pdb; pdb.set_trace()
+        ## it's a SPA!
+        return handler.template("wheelcms_properties/configure_properties.html")
 
-
-        return handler.template("wheelcms_properties/configure_properties.html", **ctx)
+    @action
+    @json
+    def formlist(self, handler, instance):
+        ## sort?
+        return [dict(name=f.name, id=f.id, spokes=["a", "b", "c"])
+                for f in PropertyForm.objects.filter(conf=instance)]
 
     @action
     @json
     def formdata(self, handler, instance):
         request = handler.request
 
-        id = request.REQUEST.get('id', None)
+        id = int(request.REQUEST.get('id', -1))
         if request.method == "POST":
-            data = load_json(request.POST.get('data', '{}'))
+            formdata = load_json(request.POST.get('data', '{}'))
             extra = load_json(request.POST.get('extra', '{}'))
-            if id is None:
-                pf = PropertyForm(conf=instance, name=extra.get('formname'), form=dump_json(data)).save()
+            formname = extra.get('name', 'new form')
+
+            if id == -1:
+                pf = PropertyForm(conf=instance, name=formname,
+                                  form=dump_json(formdata)).save()
                 pf.save()
                 id = pf.id
             else:
-                pass
+                pf = PropertyForm.objects.get(pk=id)
+                pf.name = formname
+                pf.form = dump_json(formdata)
+                pf.save()
 
-        if id is not None:
-            return load_json(PropertyForm.objects.get(pk=id).form)
+        if id != -1:
+            pf = PropertyForm.objects.get(pk=id)
+            return dict(form=load_json(pf.form),
+                        extra=dict(name=pf.name, id=pf.id))
         return []
 
 configuration_registry.register(PropertiesConfigurationHandler)

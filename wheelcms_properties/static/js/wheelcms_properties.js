@@ -73,7 +73,9 @@ wheelcms_properties.controller("BaseFieldsEditCtrl", function($scope, $http, $mo
         $scope.base = base;
 
         $http.get(base).then(function(result) {
-            $scope.field_def = result.data;
+            $scope.field_def = result.data.form;
+            $scope.extra = result.data.extra;
+            console.log("extra", $scope.extra);
             build_schemaforms();
         });
 
@@ -136,12 +138,14 @@ wheelcms_properties.controller("BaseFieldsEditCtrl", function($scope, $http, $mo
         for(var idx = 0; idx < $scope.schemaforms.length; idx++) {
             reordered.push($scope.schemaforms[idx].field);
         }
+        console.log("POST", $scope.extra);
         $http.post($scope.base,
                    {
                         data: $filter('json')(reordered),
                         extra: $filter('json')($scope.extra || {})
                    }).then(function(result) {
-                             $scope.field_def = result.data;
+                             $scope.field_def = result.data.form;
+                             $scope.extra = result.data.extra;
                              build_schemaforms();
                              $scope.changed = false;
                              Notifier.notify("info", "Saved");
@@ -150,8 +154,22 @@ wheelcms_properties.controller("BaseFieldsEditCtrl", function($scope, $http, $mo
 });
 
 
-wheelcms_properties.controller("WheelPropertiesCtrl", function($scope, $controller, $rootScope, FormTool) {
+wheelcms_properties.controller("WheelPropertiesCtrl",
+                               function($scope, $controller, $rootScope,
+                                        $http, FormTool) {
     $scope.state = "list";
+    $scope.forms = [];
+
+    var baseurl = $rootScope.urlbase + '?config=spoke_properties';
+
+    var refreshforms = function() {
+        $http.get(baseurl + "&action=formlist").then(function(result) {
+            $scope.forms = result.data;
+            console.log($scope.forms);
+        });
+    }
+
+    refreshforms();
 
     $controller('BaseFieldsEditCtrl', {$scope:$scope});
 
@@ -162,21 +180,20 @@ wheelcms_properties.controller("WheelPropertiesCtrl", function($scope, $controll
      * Either hook into the BaseFieldsEditCtrl edit/delete, or do a second get/post
      */
     $scope.newEditForm = function(id) {
-        console.log(id);
         $scope.state = "edit";
-        var url = $rootScope.urlbase + '?config=spoke_properties&action=formdata';
+        $scope.extra = {};
+
+        var url = baseurl + '&action=formdata';
         if(id !== null) {
             url += "&id=" + id;
         }
-        console.log(url);
         $scope.initialize(url);
-        $scope.formname = "Some form";
     };
     $scope.saveForm = function(id) {
-        $scope.extra = {'formname':$scope.formname}
-
+        console.log("Saving extra", $scope.extra);
         $scope.save(); // defined in base controller
         $scope.state = "list";
+        refreshforms();
     };
 });
 
