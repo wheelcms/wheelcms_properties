@@ -1,3 +1,5 @@
+from operator import itemgetter
+
 from django.db import models
 from two.ol.base import json
 
@@ -41,8 +43,12 @@ class PropertiesConfigurationHandler(BaseConfigurationHandler):
     @json
     def formlist(self, handler, instance):
         ## sort?
-        return [dict(name=f.name, id=f.id, spokes=["a", "b", "c"])
-                for f in PropertyForm.objects.filter(conf=instance)]
+        spokes=[dict(key=k, value=v.title) for (k, v) in type_registry.items()]
+
+        spokes.sort(key=itemgetter('value'))
+        return dict(spokes=spokes,
+                    forms=[dict(name=f.name, id=f.id, spokes=f.types.split(","))
+                           for f in PropertyForm.objects.filter(conf=instance)])
 
     @action
     @json
@@ -54,23 +60,27 @@ class PropertiesConfigurationHandler(BaseConfigurationHandler):
             formdata = load_json(request.POST.get('data', '{}'))
             extra = load_json(request.POST.get('extra', '{}'))
             formname = extra.get('name', 'new form')
+            spokes = ",".join(extra.get('spokes', []))
 
             if id == -1:
                 pf = PropertyForm(conf=instance, name=formname,
-                                  form=dump_json(formdata)).save()
+                                  form=dump_json(formdata),
+                                  types=spokes)
                 pf.save()
                 id = pf.id
             else:
                 pf = PropertyForm.objects.get(pk=id)
                 pf.name = formname
                 pf.form = dump_json(formdata)
+                pf.types = spokes
                 pf.save()
 
         if id != -1:
             pf = PropertyForm.objects.get(pk=id)
             return dict(form=load_json(pf.form),
-                        extra=dict(name=pf.name, id=pf.id))
-        return []
+                        extra=dict(name=pf.name, id=pf.id,
+                                   spokes=pf.types.split(",")))
+        return dict(form=[], extra={'name':'', 'spokes':[]})
 
 configuration_registry.register(PropertiesConfigurationHandler)
 

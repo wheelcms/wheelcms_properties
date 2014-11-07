@@ -71,15 +71,13 @@ wheelcms_properties.controller("BaseFieldsEditCtrl", function($scope, $http, $mo
 
     $scope.initialize = function(base) {
         $scope.base = base;
+        $scope.model = {};
 
-        $http.get(base).then(function(result) {
+        return $http.get(base).then(function(result) {
             $scope.field_def = result.data.form;
             $scope.extra = result.data.extra;
-            console.log("extra", $scope.extra);
             build_schemaforms();
         });
-
-        $scope.model = {};
     };
 
     $scope.sortableOptions = {
@@ -138,7 +136,6 @@ wheelcms_properties.controller("BaseFieldsEditCtrl", function($scope, $http, $mo
         for(var idx = 0; idx < $scope.schemaforms.length; idx++) {
             reordered.push($scope.schemaforms[idx].field);
         }
-        console.log("POST", $scope.extra);
         $http.post($scope.base,
                    {
                         data: $filter('json')(reordered),
@@ -164,8 +161,8 @@ wheelcms_properties.controller("WheelPropertiesCtrl",
 
     var refreshforms = function() {
         $http.get(baseurl + "&action=formlist").then(function(result) {
-            $scope.forms = result.data;
-            console.log($scope.forms);
+            $scope.forms = result.data.forms;
+            $scope.spokes = result.data.spokes;
         });
     }
 
@@ -179,6 +176,17 @@ wheelcms_properties.controller("WheelPropertiesCtrl",
      * - content types it's bound to
      * Either hook into the BaseFieldsEditCtrl edit/delete, or do a second get/post
      */
+    var findspoke = function(key) {
+        for(var j = 0; j < $scope.spokes.length; j++) {
+            if($scope.spokes[j].key == key) {
+                return $scope.spokes[j];
+            }
+        }
+        return '';
+    }
+
+    $scope.findspoke = findspoke;
+
     $scope.newEditForm = function(id) {
         $scope.state = "edit";
         $scope.extra = {};
@@ -187,10 +195,25 @@ wheelcms_properties.controller("WheelPropertiesCtrl",
         if(id !== null) {
             url += "&id=" + id;
         }
-        $scope.initialize(url);
+        $scope.initialize(url).then(function(result) {
+            $scope.extra.select_types = [];
+            for(var i = 0; i < $scope.extra.spokes.length; i++) {
+                var s = findspoke($scope.extra.spokes[i]);
+                if(s) {
+                    $scope.extra.select_types.push(s);
+                }
+            }
+        });
     };
+    $scope.cancelForm = function(id) {
+        $scope.state = "list";
+    };
+
     $scope.saveForm = function(id) {
-        console.log("Saving extra", $scope.extra);
+        $scope.extra.spokes = [];
+        for(var i = 0; i < $scope.extra.select_types.length; i++) {
+            $scope.extra.spokes.push($scope.extra.select_types[i].key);
+        }
         $scope.save(); // defined in base controller
         $scope.state = "list";
         refreshforms();

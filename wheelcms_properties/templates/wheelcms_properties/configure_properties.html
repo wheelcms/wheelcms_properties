@@ -61,7 +61,11 @@
           <tbody>
             <tr ng-repeat="form in forms">
               <td><[form.name]></td>
-              <td>A, B, C <[form.id]></td>
+              <td>
+                <div ng-repeat="spoke in form.spokes">
+                  <[ findspoke(spoke).value ]>
+                </div>
+              </td>
               <td><button class="btn btn-primary btn-xs pull-right"
                           ng-click="newEditForm(form.id)"
                          ><i class="glyphicon glyphicon-edit"></i> Edit</button>
@@ -84,6 +88,9 @@
                   {# ng-hide="!changed" #}>
             <i class="glyphicon glyphicon-save"></i> Save changes
           </button>
+          <button class="btn btn-default btn-xs pull-right" ng-click="cancelForm()">
+            <i class="glyphicon glyphicon-ban-circle"></i> Cancel
+          </button>
         </h3>
       </div>
     </div>
@@ -105,6 +112,19 @@
     </div>
     <div class="row">
       <div class="col-md-12">
+        <div class="form-group ">
+          <label class="control-label col-md-2" for="id_title">Active on</label>
+          <div class="col-md-10">
+            <select multiple class="form-control"
+                    ng-model="extra.select_types"
+                    ng-options="spoke.value for spoke in spokes">
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-12">
         <h4>Form definition</h4>
       </div>
     </div>
@@ -112,6 +132,11 @@
       <div class="col-md-12">
         <table class="table">
           <tbody ui-sortable="sortableOptions" ng-model="schemaforms">
+          <tr ng-if="schemaforms.length == 0">
+            <td>
+              The form is empty. Add your first field using the "Add field" button above.
+            </td>
+          </tr>
           <tr ng-repeat="sf in schemaforms">
             <td class="text-center">
               <span class="glyphicon glyphicon-move glyphicon-large"></span>
