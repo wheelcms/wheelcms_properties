@@ -82,5 +82,42 @@ class PropertiesConfigurationHandler(BaseConfigurationHandler):
                                    spokes=pf.types.split(",")))
         return dict(form=[], extra={'name':'', 'spokes':[]})
 
+from wheelcms_axle.spoke import tab
+
+from wheelcms_axle import permissions as p
+from wheelcms_axle.actions import action_registry
+
+def has_form(spoke):
+    """ TODO: check if any forms have been assigned XXX """
+    return True
+
+@action(p.edit_content)
+@json
+def properties_data_handler(handler, request, action):
+    """ return relevant form data """
+    ## return first form that matches. TODO: combine forms into groups
+
+    ## combine with data
+
+    # import pdb; pdb.set_trace()
+    
+    spokename = handler.spoke().name()
+    forms = []
+    for pf in PropertyForm.objects.all():
+        types = pf.types.split(",")
+        if spokename in types:
+            forms.append(dict(name=pf.name, form=load_json(pf.form)))
+
+    return dict(forms=forms)
+
+
+@tab(p.edit_content, label="Object properties", condition=has_form)
+def properties_handler(handler, request, action):
+    """ only show tab if actions registered on spoke ? """
+    return handler.template("wheelcms_properties/object_properties_tab.html")
+
+action_registry.register(properties_handler, 'properties')
+action_registry.register(properties_data_handler, 'properties_data')
+
 configuration_registry.register(PropertiesConfigurationHandler)
 

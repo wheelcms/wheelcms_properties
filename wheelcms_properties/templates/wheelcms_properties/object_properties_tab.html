@@ -1,0 +1,66 @@
+{% extends "wheelcms_axle/base_form.html" %}
+{% load granules %}
+{% load staticfiles %}
+{% load i18n %}
+{% load url from future %}
+
+{% block angular_init %}
+  {{block.super}}
+  <script type="text/javascript">
+    extradeps.push("wheelcms_properties");
+   </script>
+{% endblock %}
+
+{% block granules %}
+  {{block.super}}
+
+  {% granule "base_stylesheets" %}
+    <link href="{% static "css/fields.css" %}" rel="stylesheet">
+  {% endgranule %}
+
+  {% granule "javascript" %}
+    {# same as hwconfig_fields #}
+    <script src="{% static "js/tv4.min.js" %}"></script>
+    <script src="{% static "js/ObjectPath.js" %}"></script>
+    <script src="{% static "js/schema-form.js" %}"></script>
+    <script src="{% static "js/bootstrap-decorator.min.js" %}"></script>
+    <script src="{% static "js/sortable.js" %}"></script>
+    {# .. #}
+    <script src="{% static "js/wheelcms_properties.js" %}"></script>
+  {% endgranule %}
+{% endblock %}
+
+{% block form_form  %}
+
+<div ng-controller="WheelPropertiesFieldsViewCtrl">
+  <div class="row">
+    <div class="col-md-12">
+      <h3>
+        Object properties
+      </h3>
+    </div>
+  </div>
+  <div ng-repeat="form in forms">
+    <div class="row">
+      <div class="col-md-12">
+        <h4><[form.name]></h4>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-12">
+        <form name="devicepropsform<[$index]>" sf-schema="form.schema" sf-form="form.form" sf-model="form.model">
+        </form>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-12">
+        {# all forms must be valid #}
+        <button class="btn btn-primary pull-right" ng-disabled="devicepropsform.$invalid" ng-click="save()">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+{% endblock %}
+
