@@ -10,7 +10,7 @@ from wheelcms_axle.configuration import BaseConfigurationHandler
 
 from wheelcms_axle.registries.configuration import configuration_registry
 
-from wheelcms_axle.content import type_registry
+from wheelcms_axle.content import type_registry, Content
 from wheelcms_axle.actions import action
 
 class Properties(models.Model):
@@ -22,6 +22,13 @@ class PropertyForm(models.Model):
     form = models.TextField(default="[]", blank=False)
 
     types = models.TextField(default="")
+
+class PropertyFormData(models.Model):
+    """ stored form data, per form / content instance """
+    form = models.ForeignKey(PropertyForm, related_name="data")
+    content = models.ForeignKey(Content, related_name="properties")
+
+    properties = models.TextField(default="{}") # 'json'
 
 """
     List all known spokes
@@ -100,15 +107,25 @@ def properties_data_handler(handler, request, action):
     ## combine with data
 
     # import pdb; pdb.set_trace()
-    
+    spoke = handler.spoke()
+    if request.method == "POST":
+        data = load_json(request.POST.get('data'))
+        for (id, formdata) in data.iteritems():
+            form_obj_storage, _ = PropertyFormData.objects.get_or_create(form_id=id, content=spoke.instance)
+            form_obj_storage.properties = dump_json(formdata)
+            form_obj_storage.save()
+
     spokename = handler.spoke().name()
     forms = []
     for pf in PropertyForm.objects.all():
         types = pf.types.split(",")
         if spokename in types:
-            forms.append(dict(name=pf.name, form=load_json(pf.form)))
+            forms.append(dict(id=pf.id, name=pf.name, form=load_json(pf.form)))
 
-    return dict(forms=forms)
+    data = {}
+    for pfd in spoke.instance.properties.all():
+        data[pfd.form_id] = load_json(pfd.properties)
+    return dict(forms=forms, data=data)
 
 
 @tab(p.edit_content, label="Object properties", condition=has_form)
@@ -116,8 +133,11 @@ def properties_handler(handler, request, action):
     """ only show tab if actions registered on spoke ? """
     return handler.template("wheelcms_properties/object_properties_tab.html")
 
-action_registry.register(properties_handler, 'properties')
-action_registry.register(properties_data_handler, 'properties_data')
 
-configuration_registry.register(PropertiesConfigurationHandler)
+def register():
+    action_registry.register(properties_handler, 'properties')
+    action_registry.register(properties_data_handler, 'properties_data')
 
+    configuration_registry.register(PropertiesConfigurationHandler)
+
+register()

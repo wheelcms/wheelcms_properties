@@ -48,15 +48,15 @@
     </div>
     <div class="row">
       <div class="col-md-12">
-        <form name="devicepropsform<[$index]>" sf-schema="form.schema" sf-form="form.form" sf-model="form.model">
+        <form name="devicepropsform<[form.id]>" sf-schema="form.schema" sf-form="form.form" sf-model="models[form.id]">
         </form>
       </div>
     </div>
-    <div class="row">
-      <div class="col-md-12">
-        {# all forms must be valid #}
-        <button class="btn btn-primary pull-right" ng-disabled="devicepropsform.$invalid" ng-click="save()">Save</button>
-      </div>
+  </div>
+  <div class="row">
+    <div class="col-md-12">
+      {# all forms must be valid #}
+      <button class="btn btn-primary pull-right" ng-disabled="devicepropsform.$invalid" ng-click="save()">Save</button>
     </div>
   </div>
 </div>

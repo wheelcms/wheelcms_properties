@@ -283,32 +283,39 @@ wheelcms_properties.controller("BaseFieldsViewCtrl", function($scope, $modal, $s
     var _url = null;
 
     $scope.forms = [];
+    $scope.models = {};
 
     var load_devprops = function(data) {
+        $scope.forms = [];
+
+
+        $scope.models = data.data || {};
         for(var i = 0; i < data.forms.length; i++) {
             var form = data.forms[i];
             var sf = FormTool.build_schemaform(form.form);
 
-            console.log(sf);
-            $scope.forms.push({schema:sf.schema, form:sf.form, model:{},
+            $scope.forms.push({id: form.id, schema:sf.schema, form:sf.form, model:{},
                                name:form.name});
         }
+        console.log($scope.forms);
+        console.log($scope.models);
     };
 
     $scope.initialize = function(url) {
-        var _url = url;
+        _url = url;
         $http.get(url).then(function(result) {
             console.log(result.data);
             load_devprops(result.data);
         });
     }
 
-    $scope.model = {};
 
     $scope.save = function() {
+        console.log($scope.models);
+        console.log(_url);
         $http.post(_url,
                    {
-                        data: $filter('json')($scope.model)
+                        data: $filter('json')($scope.models)
                    }).then(function(result) {
                         load_devprops(result.data);
                         Notifier.notify("info", "Saved");
@@ -317,7 +324,6 @@ wheelcms_properties.controller("BaseFieldsViewCtrl", function($scope, $modal, $s
 });
 
 wheelcms_properties.controller("WheelPropertiesFieldsViewCtrl", function($scope, $rootScope, $controller) {
-    console.log("Hello World");
     $controller('BaseFieldsViewCtrl', {$scope:$scope});
 
     $scope.initialize($rootScope.urlbase + '+properties_data/');
